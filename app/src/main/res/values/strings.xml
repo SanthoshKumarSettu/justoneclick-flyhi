@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Justoneclickflyhi</string>
+
+    <string name="JustOneClick">Just One Click</string>
+    <string name="action_settings">Help</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_home">Just One Click</string>
+    <string name="hello_world">Hello world!</string>
+</resources>
