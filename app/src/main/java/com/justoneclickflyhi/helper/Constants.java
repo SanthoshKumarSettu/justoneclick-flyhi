@@ -3,8 +3,8 @@ package com.justoneclickflyhi.helper;
 public class Constants {
 	
 	public static String REMINDER;
-	//public static String NUMBER = "+918861273211" ;
-	public static String NUMBER = "+919600413993" ;
+	public static String NUMBER = "+918861273211" ;
+	//public static String NUMBER = "+919600413993" ;
 	
 
 	public static String MESSAGE;

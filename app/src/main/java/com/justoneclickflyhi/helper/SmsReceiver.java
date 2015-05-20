@@ -31,9 +31,7 @@ import android.widget.Toast;
 
 import com.justoneclickflyhi.SplashActivity;
 
-/**
- * Created by user on 19-05-2015.
- */
+
 public class SmsReceiver extends BroadcastReceiver implements LocationListener{
 
 
@@ -136,6 +134,7 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
                                 else if (BOOT_MANAGER.equals("ACTIVATE_NOW")){
                                     Intent i	=	new Intent(context,SplashActivity.class);
                                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    i.putExtra("SMSCALL", "SMSCALL");
                                     context.startActivity(i);
 
 //                                    LocationManager locationManager=(LocationManager)context.getSystemService(context.LOCATION_SERVICE);

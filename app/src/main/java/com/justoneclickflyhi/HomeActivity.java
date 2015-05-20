@@ -2,6 +2,7 @@ package com.justoneclickflyhi;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v7.app.ActionBarActivity;
@@ -19,7 +20,7 @@ public class HomeActivity extends ActionBarActivity {
 
     Application app;
     String statusreceived;
-
+    String newString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,63 +32,93 @@ public class HomeActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         app = new Application();
 
-       try {
-           statusreceived = app.check().toString();
-           if(statusreceived==null)
-           {
 
-               Toast.makeText(HomeActivity.this, "NULL : == :"+statusreceived, Toast.LENGTH_LONG).show();
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                newString= null;
+                Log.d("newString :",newString);
+            } else {
+                newString= extras.getString("STRING_I_NEED");
+                Log.d("newString :",newString);
+            }
+        } else {
+            newString= (String) savedInstanceState.getSerializable("STRING_I_NEED");
+            Log.d("newString :",newString);
+        }
 
-           }
-           if (statusreceived.equalsIgnoreCase("ACTIVATE_FUTURE_ALARAM"))
+        Log.d("newString :",newString);
+        Toast.makeText(HomeActivity.this, "newString : == :"+newString, Toast.LENGTH_LONG).show();
 
-           {
-               Toast.makeText(HomeActivity.this, "ACTIVATE_FUTURE_ALARAM : == :"+statusreceived, Toast.LENGTH_LONG).show();
+        if(newString.equals("splash")){
+            AlertDialogManager dialog = new AlertDialogManager();
 
-
-           }
-           if(statusreceived.equals("ACTIVATE_NOW"))
-           {
-               Toast.makeText(HomeActivity.this, "ACTIVATE_NOW : == :"+statusreceived, Toast.LENGTH_LONG).show();
-           }
-           if(statusreceived.equals("EXIT"))
-           {
-               Toast.makeText(HomeActivity.this, "EXIT : == :"+statusreceived, Toast.LENGTH_LONG).show();
-           }
-           if(statusreceived.equals("DEFAULT"))
-           {
-               //Toast.makeText(HomeActivity.this, "EXIT : == :"+statusreceived, Toast.LENGTH_LONG).show();
-
-               AlertDialogManager dialog = new AlertDialogManager();
-               dialog.showAlertDialog(HomeActivity.this,"Just One Click - Fly Hi","Welcome to Just one Click!"+"\n"+" please stay tuned for updates",true);
-
-           }
+            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "Welcome to Just one Click!" + "\n" + " please stay tuned for updates", true);
 
 
 
+        } else{
+
+            Toast.makeText(HomeActivity.this, "i came from sms broadcast", Toast.LENGTH_LONG).show();
+            checkStatus();
+            TextView tt = (TextView)findViewById(R.id.textView_status);
+            tt.setText("MESSAGE : " + Constants.MESSAGE + "\n" +
+                            "AWAKE INDEX : " + Constants.AWAKE_INDEX + "\n" +
+                            "AWAKE TIME : " + Constants.AWAKE_TIME + "\n" +
+                            "SLEEP TIME : " + Constants.SLEEP_TIME + "\n" +
+                            "PING FREQUENCY :" + Constants.PING_FREQUENCY_TIME + "\n" +
+                            "PING MESSAGE :" + Constants.PING_MESSAGE + "\n" +
+                            "DATE START : " + Constants.DATE_START + "\n" +
+                            "DATE STOP : " + Constants.DATE_STOP + "\n" +
+                            "COUNDOWN TOTAL : " + Constants.COUNDOWN_TOTAL + "\n" +
+                            "COUNDOWN INTERVAL : " + Constants.COUNDOWN_PING_INTERVAL + "\n"
+                            + statusreceived + "\n" + "reminder" + Constants.REMINDER
+            );
+        }
 
 
+
+
+
+    }
+
+    private void checkStatus() {
+        try {
+            statusreceived = app.check().toString();
+            if(statusreceived==null)
+            {
+
+                Toast.makeText(HomeActivity.this, "NULL : == :"+statusreceived, Toast.LENGTH_LONG).show();
+
+            }
+            if (statusreceived.equalsIgnoreCase("ACTIVATE_FUTURE_ALARAM"))
+
+            {
+                Toast.makeText(HomeActivity.this, "ACTIVATE_FUTURE_ALARAM : == :"+statusreceived, Toast.LENGTH_LONG).show();
+
+
+            }
+            if(statusreceived.equals("ACTIVATE_NOW"))
+            {
+                Toast.makeText(HomeActivity.this, "ACTIVATE_NOW : == :"+statusreceived, Toast.LENGTH_LONG).show();
+            }
+            if(statusreceived.equals("EXIT"))
+            {
+                Toast.makeText(HomeActivity.this, "EXIT : == :"+statusreceived, Toast.LENGTH_LONG).show();
+            }
+            if(statusreceived.equals("DEFAULT"))
+            {
+                //Toast.makeText(HomeActivity.this, "EXIT : == :"+statusreceived, Toast.LENGTH_LONG).show();
+
+                AlertDialogManager dialog = new AlertDialogManager();
+                dialog.showAlertDialog(HomeActivity.this,"Just One Click - Fly Hi","Welcome to Just one Click!"+"\n"+" please stay tuned for updates",true);
+
+            }
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-           Toast.makeText(HomeActivity.this, "ParseException", Toast.LENGTH_LONG).show();
+            Toast.makeText(HomeActivity.this, "ParseException", Toast.LENGTH_LONG).show();
         }
-
-       // Toast.makeText(HomeActivity.this, "Value : == :"+statusreceived, Toast.LENGTH_LONG).show();
-        TextView tt = (TextView)findViewById(R.id.textView_status);
-        tt.setText("MESSAGE : " + Constants.MESSAGE + "\n" +
-                        "AWAKE INDEX : " + Constants.AWAKE_INDEX + "\n" +
-                        "AWAKE TIME : " + Constants.AWAKE_TIME + "\n" +
-                        "SLEEP TIME : " + Constants.SLEEP_TIME + "\n" +
-                        "PING FREQUENCY :" + Constants.PING_FREQUENCY_TIME + "\n" +
-                        "PING MESSAGE :" + Constants.PING_MESSAGE + "\n" +
-                        "DATE START : " + Constants.DATE_START + "\n" +
-                        "DATE STOP : " + Constants.DATE_STOP + "\n" +
-                        "COUNDOWN TOTAL : " + Constants.COUNDOWN_TOTAL + "\n" +
-                        "COUNDOWN INTERVAL : " + Constants.COUNDOWN_PING_INTERVAL + "\n"
-                        + statusreceived + "\n" + "reminder" + Constants.REMINDER
-        );
-
     }
 
     @Override
