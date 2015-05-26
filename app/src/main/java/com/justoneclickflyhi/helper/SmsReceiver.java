@@ -24,11 +24,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.justoneclickflyhi.HomeActivity;
 import com.justoneclickflyhi.SplashActivity;
 
 
@@ -40,13 +42,12 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
     int A_Hour,A_Min,A_Day,A_Month,A_Year;
     int S_Hour,S_Min,S_Day,S_Month,S_Year;
 
-
-    //Constants constants;
     @Override
     public void onReceive(final Context context, Intent intent) {
-        //context = context1;
-        //System.out.println("INTO SMS ON RECEIVE");
-        if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")){
+
+        Toast.makeText(context," Receiving  SMS ",Toast.LENGTH_LONG).show();
+
+         if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")){
 
             String message=intent.getExtras().getString("");
 
@@ -72,121 +73,168 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
                         if(msg_from.equals(Constants.NUMBER)){
                             System.out.println("INTO SMS IF LOOP");
 
-                            ///check for message type its GT or Ping type P030
-
                             if(msgBody.substring(0, 2).equals("GT")){
+
+                                //SessionStore.setPref(context,msgBody);
+
                                 System.out.println("INTO SMS IF GT LOOP");
+                                Toast.makeText(context," GT ",Toast.LENGTH_LONG).show();
+
+                                SessionStore.saveReceivedMessage(msgBody.toString(), context);
+                                SessionStore.saveReceivedMessageType(msgBody.substring(0, 2).toString(), context);
+
+                                SessionStore.saveHourAwake(msgBody.substring(2, 4).toString(), context);
+                                SessionStore.saveMinuteAwake(msgBody.substring(4, 6).toString(), context);
+                                SessionStore.saveDayAwake(msgBody.substring(6, 8).toString(), context);
+                                SessionStore.saveMonthAwake(msgBody.substring(8, 10).toString(), context);
+                                SessionStore.saveYearAwake("20"+msgBody.substring(10, 12).toString(), context);
+
+                                SessionStore.saveHourSleep(msgBody.substring(12, 14), context);
+                                SessionStore.saveMinuteSleep(msgBody.substring(14, 16), context);
+                                SessionStore.saveDaySleep(msgBody.substring(16, 18), context);
+                                SessionStore.saveMonthSleep(msgBody.substring(18, 20), context);
+                                SessionStore.saveYearSleep("20"+msgBody.substring(20, 22), context);
+
+                                SessionStore.savePingInterval(msgBody.substring(23, 26), context);
 
 
-                                ParseString();
-                                formatAwake();
-                                fomatSleep();
+                                Constants.MESSAGE = SessionStore.getReceivedMessage(context);
+                                Constants.MESSAGE_TYPE = SessionStore.getReceivedMessageType(context);
+
+                                Constants.AWAKE_TIME_HOUR = SessionStore.getHourAwake(context);
+                                Constants.AWAKE_TIME_MIN = SessionStore.getMinuteAwake(context);
+                                Constants.AWAKE_DATE_DAY = SessionStore.getDayAwake(context);
+                                Constants.AWAKE_DATE_MONTH = SessionStore.getMonthAwake(context);
+                                Constants.AWAKE_DATE_YEAR = SessionStore.getYearAwake(context);
+
+                                Constants.SLEEP_TIME_HOUR = SessionStore.getHourSleep(context);
+                                Constants.SLEEP_TIME_MIN = SessionStore.getMinuteSleep(context);
+                                Constants.SLEEP_DATE_DAY = SessionStore.getDaySleep(context);
+                                Constants.SLEEP_DATE_MONTH = SessionStore.getMonthSleep(context);
+                                Constants.SLEEP_DATE_YEAR = SessionStore.getYearSleep(context);
+
+
+
                                 Application app = new Application();
                                 String BOOT_MANAGER = app.check().toString();
 
-
-
-
-
-
-//                		 Calendar calendar = Calendar.getInstance();
-//
-//               	      calendar.set(Calendar.MONTH, 5);
-//               	      calendar.set(Calendar.YEAR, 2015);
-//               	      calendar.set(Calendar.DAY_OF_MONTH, 18);
-//
-//               	      calendar.set(Calendar.HOUR_OF_DAY, 11);
-//               	      calendar.set(Calendar.MINUTE, 03);
-//               	      calendar.set(Calendar.SECOND, 0);
-//               	      //calendar.set(Calendar.AM_PM,Calendar.AM);
-//
-//
-//                		 Intent i22 = new Intent(context, SplashScreenActivity.class);
-//                         context.startService(i22);
-//
-//                         AlarmManager am = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-//                         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0,i22,PendingIntent.FLAG_UPDATE_CURRENT);
-//                         am.set(AlarmManager.RTC
-//                         		, calendar.getTimeInMillis() ,pendingIntent);
-//                         System.out.println(" calendar.getTimeInMillis() : "+ calendar.getTimeInMillis());
-//                         Toast.makeText(context,"AFTER THE SET ALARM CODE",Toast.LENGTH_LONG).show();
-
-
                                 if(BOOT_MANAGER.equals("ACTIVATE_FUTURE_ALARAM")){
-
                                     System.out.println("ACTIVATE FOR FUTURE");
                                     Toast.makeText(context,"ACTIVATE FOR FUTURE",Toast.LENGTH_LONG).show();
+                                    Intent i	=	new Intent(context,SplashActivity.class);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    i.putExtra("STRING_I_NEED", "smscall");
+                                    context.startActivity(i);
 
-                                    /***
-                                     *
-                                     * insist the uers to thanks for using the or no need
-                                     * Set the background alarm here depending on the awake time date and sleep date time
-                                     *
-                                     **/
-                                    //AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                                    Calendar received = Calendar.getInstance();
 
+                                    received.set(Calendar.YEAR, 2015);
+                                    received.set(Calendar.MONTH, 04);
+                                    received.set(Calendar.DAY_OF_MONTH, 26);
+                                    received.set(Calendar.HOUR_OF_DAY, 12);
+                                    received.set(Calendar.MINUTE, 28);
+                                    SimpleDateFormat C_date_format = new SimpleDateFormat("HH:mm ddMMyyyy");
 
+                                    Intent intentSmsSender = new Intent(context, SmsSender.class);
+                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context,1, intentSmsSender, 0);
+                                    AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                                    alarmManager.set(AlarmManager.RTC_WAKEUP, received.getTimeInMillis(), pendingIntent);
 
-
+                                    Toast.makeText(context, "Alaram Set : "+"\n"+ C_date_format.format(received.getTime())+"\n"+
+                                            "Received Date :"+ C_date_format.format(received.getTime()), Toast.LENGTH_LONG).show();
 
 
                                 }
                                 else if (BOOT_MANAGER.equals("ACTIVATE_NOW")){
-                                    Intent i	=	new Intent(context,SplashActivity.class);
-                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    i.putExtra("SMSCALL", "SMSCALL");
-                                    context.startActivity(i);
 
-//                                    LocationManager locationManager=(LocationManager)context.getSystemService(context.LOCATION_SERVICE);
-//                                    boolean enabled=locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-//                                    if(enabled) {
-//                                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//                                        SmsManager smsManager=SmsManager.getDefault();
-//
-//                                        smsManager.sendTextMessage(Constants.NUMBER, "", "G"+location.getLatitude()+ ":"+"G"+location.getLongitude(), null, null);
-//                                    }else{
-//
-//                                        Toast.makeText(context,"Disabled",Toast.LENGTH_LONG).show();
-//
-//
-//                                    }
+                                    /**
+                                     Intent i	=	new Intent(context,SplashActivity.class);
+                                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                     i.putExtra("STRING_I_NEED", "smscall");
+                                     context.startActivity(i);
+                                     **/
 
+
+
+                                    try {
+                                        Intent intentRepeat = new Intent(context, SmsSender.class);
+                                        PendingIntent pendingIntent = PendingIntent.getActivity(context,
+                                                12345, intentRepeat, PendingIntent.FLAG_CANCEL_CURRENT);
+                                        AlarmManager am =
+                                                (AlarmManager)context.getSystemService(context.ALARM_SERVICE);
+                                        am.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
+                                                2*60*60,pendingIntent);
+
+
+                                        SmsManager smsManager=SmsManager.getDefault();
+
+                                        smsManager.sendTextMessage(Constants.NUMBER, "", "G" + ":" + "G", null, null);
+
+
+                                    } catch (Exception e) {
+
+
+
+                                    }
+
+
+
+
+/**
+                                    LocationManager locationManager=(LocationManager)context.getSystemService(context.LOCATION_SERVICE);
+                                    boolean enabled=locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                                    if(enabled) {
+                                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                       //SmsManager smsManager=SmsManager.getDefault();
+
+                                       //smsManager.sendTextMessage(Constants.NUMBER, "", "G"+location.getLatitude()+ ":"+"G"+location.getLongitude(), null, null);
+                                  }else{
+                                       Toast.makeText(context,"Disabled",Toast.LENGTH_LONG).show();
+                                    }
+
+                                    **/
                                     final String finalMsg_from = msg_from;
                                     handler.postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
-                                            deleteSMS(context, msgBody, finalMsg_from);
+                                            // deleteSMS(context, msgBody, finalMsg_from);
+                                            Toast.makeText(context, "Deleting sms", Toast.LENGTH_LONG).show();
                                         }
-                                    },5000);
+                                    }, 5000);
                                     System.out.println("ACTIVATE NOw FROM SMS RECEIVER");
-                                    Toast.makeText(context,"ACTIVATE NOw FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
+                                    Toast.makeText(context,"ACTIVATING NOW FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
 
-                                } else if (BOOT_MANAGER.equals("EXIT")){
+                                }
+
+                                else if (BOOT_MANAGER.equals("EXIT")){
+                                    /**
+                                     * DATE AND TIME OUT OF DATE SO EXIT AND IGNORE THE SESSION
+                                     * **/
+                                    System.out.println("EXIT FROM SMS RECEIVER");
+                                    Toast.makeText(context,"EXIT FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
+
+                                }
+
+                                else if (BOOT_MANAGER.equals("SMS_ERROR")){
                                     /**
                                      * reset all previous values an
                                      * **/
                                     System.out.println("EXIT FROM SMS RECEIVER");
                                     Toast.makeText(context,"EXIT FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
+
+                                    Constants.REMINDER="SMS_ERROR";
+                                    //RESET THE SESSION VALUES AND SEND HELP SMS
+
                                 }
 
 
-                            }
 
+                            }
                             else if (msgBody.substring(0, 1).equals("P")){
-
                                 Toast.makeText(context,"PING MESSAGE ",Toast.LENGTH_LONG).show();
-                                /**
-                                 * set the repeat value to the alarm
-                                 *
-                                 * ***/
-
-
+                                /*** set the repeat value to the alarm*****/
                             }
-
-
-
-
-                        }
+                       }
                     }
                 }catch(Exception e){
                     Log.d("Exception caught",e.getMessage());
@@ -195,12 +243,6 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
 
         }
     }
-
-
-
-
-
-
     private void fomatSleep() {
         System.out.println("INTO fomatSleep");
         String SMS_SLEEP_SMS =Constants.SLEEP_TIME;
@@ -301,9 +343,6 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
 
     @Override
     public void onProviderDisabled(String provider) {
-
-
-
     }
 
 
@@ -317,4 +356,3 @@ public class SmsReceiver extends BroadcastReceiver implements LocationListener{
     }
 
 }
-

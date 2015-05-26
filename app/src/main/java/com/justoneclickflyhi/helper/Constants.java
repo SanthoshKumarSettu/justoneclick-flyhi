@@ -3,13 +3,15 @@ package com.justoneclickflyhi.helper;
 public class Constants {
 	
 	public static String REMINDER;
-	public static String NUMBER = "+918861273211" ;
-	//public static String NUMBER = "+919600413993" ;
+	//public static String NUMBER = "+918861273211" ;
+	public static String NUMBER = "+919600413993" ;
 	
 
 	public static String MESSAGE;
+	public static String MESSAGE_TYPE;
 	
 	public static String AWAKE_INDEX ="GT" ;
+
 	
 	public static String AWAKE_DATE_DAY ;
 	public static String AWAKE_DATE_MONTH ;
@@ -57,15 +59,33 @@ public class Constants {
 	public static long COUNDOWN_TOTAL;
 	public static long COUNDOWN_PING_INTERVAL;
 
+	public  static int HH;
+	public  static int MIN;
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	public  static int DAY;
+	public  static int MONTH;
+	public  static int YEAR;
+
+	public  static int S_HH;
+	public  static int S_MIN;
+
+	public  static int S_DAY;
+	public  static int S_MONTH;
+	public  static int S_YEAR;
+
+	public  static int PING_REPEAT_INT;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

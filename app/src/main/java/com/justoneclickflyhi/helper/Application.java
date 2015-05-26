@@ -72,9 +72,6 @@ public class Application {
 			String ParseReceivedTime = timeFormat.format(date.getTime());
 			Date currentTime = timeFormat.parse(ParseReceivedTime);
 
-
-
-
 			System.out.println("R TIME : "+timeFormat.format(receivedtime));
 			System.out.println("C TIME : "+timeFormat.format(date.getTime()));
 
@@ -87,6 +84,7 @@ public class Application {
 				System.out.println(0);
 				REMINDER="ACTIVATE_FUTURE_ALARAM";
 				System.out.println(REMINDER+"correct format Set Alaram with sms Timing and Date ");
+
 			}
 
 
@@ -143,6 +141,8 @@ public class Application {
 
 						REMINDER="ACTIVATE_NOW";
 
+
+
 						System.out.println(REMINDER+"received time sleep is ater current time boot app");
 					}
 					if(receivedTIMESLEEP.before(currentTime))
@@ -165,7 +165,7 @@ public class Application {
 
 
 
-			return Constants.REMINDER = "DEFAULT";
+			return Constants.REMINDER = "SMS_ERROR";
 
 
 		}
