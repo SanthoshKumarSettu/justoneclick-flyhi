@@ -104,11 +104,8 @@ Context context;
             dialog = new AlertDialogManager();
             dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
                     "Welcome to Just one Click!" + "\n" +
-                    " please stay tuned for updates SESSION IS DEFAULT" + "\n"+SessionStore.getReceivedMessage(context)
+                    " please stay tuned for updates SESSION IS DEFAULT" + "\n"
                     , true);
-           // AlarmSettings.setWakeUpAlarm(context, "ON");
-            //SessionStore.setAlarm("WAIT", context);
-            Toast.makeText(context,"WAIT FOR ALARM",Toast.LENGTH_SHORT).show();
         }
         else if(SessionStore.getAlarm(context).toString().equalsIgnoreCase("WAIT"))
         {
@@ -116,7 +113,7 @@ Context context;
 
             dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
                     "Welcome to Just one Click!" + "\n" +
-                    " please stay tuned shortly text \n SESSION IS WAIT  " + "\n"
+                    " please stay tuned shortly text \n SESSION IS WAIT  " + "\n Message Receiveed for first launch"
                     , true);
         }
         else if (SessionStore.getAlarm(context).toString().equalsIgnoreCase("ACTIVATED"))
