@@ -121,6 +121,7 @@ Context context;
             //AlarmSettings.setRepeatingAlarm(context,
                     //PendingIntent.FLAG_UPDATE_CURRENT,"NOTIFY");
 
+
             dialog = new AlertDialogManager();
             dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
                     "Welcome to Just one Click!" + "\n" +
