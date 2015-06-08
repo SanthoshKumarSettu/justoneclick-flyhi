@@ -264,7 +264,7 @@ public class SessionStore {
         SessionStore.saveMinuteAwake(msgBody.substring(4, 6).toString(), context);
         SessionStore.saveDayAwake(msgBody.substring(6, 8).toString(), context);
         SessionStore.saveMonthAwake(msgBody.substring(8, 10).toString(), context);
-        SessionStore.saveYearAwake("20" + msgBody.substring(10, 12).toString(), context);
+         SessionStore.saveYearAwake("20" + msgBody.substring(10, 12).toString(), context);
 
         SessionStore.saveHourSleep(msgBody.substring(12, 14), context);
         SessionStore.saveMinuteSleep(msgBody.substring(14, 16), context);
