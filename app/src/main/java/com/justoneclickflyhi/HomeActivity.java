@@ -1,10 +1,14 @@
 package com.justoneclickflyhi;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.SystemClock;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -21,12 +25,14 @@ import com.justoneclickflyhi.helper.AlarmSettings;
 import com.justoneclickflyhi.helper.Application;
 import com.justoneclickflyhi.helper.Constants;
 import com.justoneclickflyhi.helper.SessionStore;
-import com.justoneclickflyhi.helper.SmsSender;
+
 import com.justoneclickflyhi.manager.AlertDialogManager;
+import com.justoneclickflyhi.manager.ToastManager;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class HomeActivity extends ActionBarActivity {
 
@@ -35,7 +41,7 @@ Context context;
     String newString;
     TextView tt;
     AlertDialogManager dialog;
-    Application app = new Application();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,96 +60,127 @@ Context context;
                 Log.d("newString :",newString);
             } else {
                 newString= extras.getString("STRING_I_NEED");
-                Log.d("newString :",newString);
+//                Log.d("newString :",newString);
             }
         } else {
             newString= (String) savedInstanceState.getSerializable("STRING_I_NEED");
-            Log.d("newString :",newString);
+            if(newString != null){
+                 Log.d("newString :",newString);
+            }
         }
         tt = (TextView)findViewById(R.id.textView_status);
+        Toast.makeText(HomeActivity.this, "newString :"+newString+"\n"+SessionStore.getAlarm(context).toString(), Toast.LENGTH_LONG).show();
 
-        app = new Application();
-
-        Toast.makeText(HomeActivity.this, "newString :"+newString+"\n"+Constants.REMINDER, Toast.LENGTH_LONG).show();
-
-        Constants.REMINDER = SessionStore.getAlarm(context);
-        reminderStatus = Constants.REMINDER;
-        if(newString.equals("splash")){
-
-
-
-            Toast.makeText(HomeActivity.this, "i came from splash", Toast.LENGTH_LONG).show();
-
-
-                if ((SessionStore.getAlarm(context) == null || SessionStore
-                    .getAlarm(context).equals(""))){
-                dialog = new AlertDialogManager();
-                dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "Welcome to Just one Click!" + "\n" +
-
-                        " please stay tuned for updates" + "\n"+"SessionStore.getAlarm is null"
-
-                        , true);
-                Toast.makeText(HomeActivity.this, "reminderStatus : "+reminderStatus, Toast.LENGTH_LONG).show();
-                } else {
-
-                Toast.makeText(HomeActivity.this, "SessionStore.getAlarm is NOT NULL : "+reminderStatus, Toast.LENGTH_LONG).show();
-                    CheckReminderStatus();
-
-
+         if ((SessionStore.getAlarm(context).toString()
+                 == null || SessionStore.getAlarm(context).toString().equals("")))
+                {
+                    Toast.makeText(HomeActivity.this, "i came from splash"+"\n", Toast.LENGTH_LONG).show();
+                    dialog = new AlertDialogManager();
+                    dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi",
+                            "Welcome to Just one Click!" + "\n" + " please stay tuned for updates" + "\n" + "SESSION NULL", true);
+                   try{
+                       callSetText();
+                   } catch (NullPointerException  n){
+                       Toast.makeText(HomeActivity.this, "NullPointerException on null value "+"\n", Toast.LENGTH_LONG).show();
+                   }
 
                 }
-        }else if(newString.equals("smscall"))
-        {
+                else
+                {
+                    ToastManager.showToast(context, "SESSION :" + SessionStore.getAlarm(context).toString());
+                    CheckReminderStatus();
+                    callSetText();
+                }
 
-            CheckReminderStatus();
-
-        }
     }///////////////////ON-CREATE END BRACKET
 
-    private void CheckReminderStatus() {
 
 
+    public void CheckReminderStatus() {
 
-        if(Constants.REMINDER.equalsIgnoreCase("ACTIVATE_FUTURE_ALARAM")){
-            // Toast.makeText(HomeActivity.this, "i came from sms broadcast", Toast.LENGTH_LONG).show();
+        if(SessionStore.getAlarm(context).toString().equalsIgnoreCase("DEFAULT"))
+        {
+            //AlarmSettings.setWakeUpAlarm(context,"ON");
             dialog = new AlertDialogManager();
-            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "ACTIVATE_FUTURE_ALARAM" + "\n" +
-
+            dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
                     "Welcome to Just one Click!" + "\n" +
-                    " please stay tuned for updates" + "\n" +
-                    "Constants.PING_REPEAT_INT" +Constants.PING_REPEAT_INT
+                    " please stay tuned for updates SESSION IS DEFAULT" + "\n"+SessionStore.getReceivedMessage(context)
+                    , true);
+           // AlarmSettings.setWakeUpAlarm(context, "ON");
+            //SessionStore.setAlarm("WAIT", context);
+            Toast.makeText(context,"WAIT FOR ALARM",Toast.LENGTH_SHORT).show();
+        }
+        else if(SessionStore.getAlarm(context).toString().equalsIgnoreCase("WAIT"))
+        {
+           dialog = new AlertDialogManager();
 
+            dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
+                    "Welcome to Just one Click!" + "\n" +
+                    " please stay tuned shortly text \n SESSION IS WAIT  " + "\n"
+                    , true);
+        }
+        else if (SessionStore.getAlarm(context).toString().equalsIgnoreCase("ACTIVATED"))
+        {
+            //AlarmSettings.setRepeatingAlarm(context,
+                    //PendingIntent.FLAG_UPDATE_CURRENT,"NOTIFY");
+
+            dialog = new AlertDialogManager();
+            dialog.showAlertDialog(HomeActivity.this, "- Fly Hi", "FLY HI " + "\n" +
+                    "Welcome to Just one Click!" + "\n" +
+                    SessionStore.getReceivedMessage(context).toString() + "\n"
                     , true);
 
-            AlarmSettings.setFirstAlarm(context);
-            AlarmSettings.startRepeatingAlarm(context);
 
-        } else if(Constants.REMINDER.equalsIgnoreCase("ACTIVATE_NOW")){
-            dialog = new AlertDialogManager();
-            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "!" + "\n" + Constants.PING_MESSAGE, true);
-        } else if(Constants.REMINDER.equalsIgnoreCase("EXIT")){
-            dialog = new AlertDialogManager();
-            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "Welcome to Just one Click!" + "\n" + " please stay tuned for updates", true);
-        } else if(Constants.REMINDER.equalsIgnoreCase("ACTIVATED")){
-            dialog = new AlertDialogManager();
-            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "!" + "\n" + Constants.PING_MESSAGE, true);
-        } else if (Constants.REMINDER.equalsIgnoreCase("SMS_ERROR")){
-            ///SMS PARSING ERROR SEND THAT SOME THING WENT WRONG
-            //Toast.makeText(HomeActivity.this, "SessionStore.getAlarm"+reminderStatus, Toast.LENGTH_LONG).show();
-
-            dialog = new AlertDialogManager();
-            dialog.showAlertDialog(HomeActivity.this, "Just One Click - Fly Hi", "Welcome to Just one Click!" + "\n" + " please stay tuned for updates"+"\n"+"SMS_ERROR", true);
-            //clearPref();
-            Toast.makeText(HomeActivity.this, "SessionStore.getAlarm "+Constants.REMINDER, Toast.LENGTH_LONG).show();
-
-
+        }
+        else if (SessionStore.getAlarm(context).toString().equalsIgnoreCase("NOTIFY_ON"))
+        {
+            finish();
+            Intent goNotifyActivity = new Intent(HomeActivity.this,NotificationActivity.class);
+            goNotifyActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(goNotifyActivity);
+         }
+        else if (SessionStore.getAlarm(context).toString().equalsIgnoreCase("MESSAGE_ON"))
+        {
+            finish();
+            Intent goNotifyActivity = new Intent(HomeActivity.this,NotificationActivity.class);
+            goNotifyActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(goNotifyActivity);
         }
 
 
 
     }
 
+    public void callSetText(){
 
+        if(SessionStore.getReceivedMessage(context)==null || SessionStore.getReceivedMessage(context).equalsIgnoreCase("")){
+
+            tt.setText("This is only for developer preview \n No Message Received Yet, Session Null");
+        }
+        else
+        {
+            SessionStore.getPrefConstants(context);
+            tt.setText(
+                    "This is for developer view only" + "\n"+
+                            Constants.MESSAGE + "\n"+
+                            Constants.MESSAGE_TYPE + "\n"+
+                            Constants.REMINDER + "\n"+ "Received AWAKE Date & Time \n"+
+                            Constants.AWAKE_TIME_HOUR +":"+ Constants.AWAKE_TIME_MIN + " -" + Constants.AWAKE_DATE_DAY+"/"+Constants.AWAKE_DATE_MONTH +"/"+
+                            Constants.AWAKE_DATE_YEAR + "\n"+  "\n"+ "Received SLEEP Date & Time \n"+
+                            Constants.SLEEP_TIME_HOUR + Constants.SLEEP_TIME_MIN + "\n"+
+                            Constants.SLEEP_DATE_DAY + Constants.SLEEP_DATE_MONTH + Constants.SLEEP_DATE_YEAR + " \n Received Message \n"+
+                            Constants.PING_MESSAGE +"\n"+
+                            "PING TIME :"+  Constants.PING_FREQUENCY_TIME +"\n PARSED Awake Date & Time \n"+
+                            Constants.HH + ":"+ Constants.MIN + " - "+
+                            Constants.DAY+ "/" + Constants.MONTH+"/" +  Constants.YEAR+ "\n PING REPEAT \n"+
+                            Constants.PING_REPEAT_INT
+            );
+
+
+        }
+
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

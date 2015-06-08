@@ -1,6 +1,7 @@
 package com.justoneclickflyhi;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,8 +11,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.justoneclickflyhi.helper.AlarmSettings;
 import com.justoneclickflyhi.helper.Constants;
 import com.justoneclickflyhi.helper.SessionStore;
+import com.justoneclickflyhi.manager.PrintStream;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -32,11 +35,13 @@ public class SplashActivity extends Activity {
                 Log.d("newString :", newString);
             } else {
                 newString= extras.getString("STRING_I_NEED");
-                Log.d("newString :",newString);
+                if(newString != null) {
+                    Log.d("newString :", newString);
+                }
             }
         } else {
             newString= (String) savedInstanceState.getSerializable("STRING_I_NEED");
-            Log.d("newString :",newString);
+            Log.d("newString :", newString);
         }
 
 
@@ -44,16 +49,36 @@ public class SplashActivity extends Activity {
 
             @Override
             public void run() {
-                String msgBody = "GT18582605151736270515F030:AYouHaveAFlightAt18:00HRS:";
-                   SessionStore.setPref(SplashActivity.this,msgBody);
-                   Intent goVal = new Intent(SplashActivity.this, HomeActivity.class);
-                    goVal.putExtra("STRING_I_NEED", newString);
-                    startActivity(goVal);
+                        // String msgBody = "GT12280806152202090615F002:AYouHaveAFlightAt18:00HRS:";
+                        //SessionStore.setPref(context,msgBody);
+
+                         PrintStream.PrintLog("Before If Loop Session is : "+SessionStore.getAlarm(context));
+
+                        if ((SessionStore.getAlarm(context) == null || SessionStore.getAlarm(context).equals("")))
+                        {
+                            PrintStream.PrintLog("Setting Default Session ");
+                            SessionStore.setAlarm("DEFAULT", context);
+                            finish();
+                            Intent goHome = new Intent(SplashActivity.this, HomeActivity.class);
+                            goHome.putExtra("STRING_I_NEED", newString);
+                            startActivity(goHome);
+                        }
+                        else
+                        {
+                            //SessionStore.setAlarm("DEFAULT",context);
+                            PrintStream.PrintLog("Session is "+SessionStore.getAlarm(context).toString());
+                            PrintStream.PrintLog("INTO ELSE");
+                            finish();
+                            Intent goHome = new Intent(SplashActivity.this, HomeActivity.class);
+                            goHome.putExtra("STRING_I_NEED", newString);
+                            startActivity(goHome);
 
 
 
+                        }
 
-            }
+
+           }
 
 
         };

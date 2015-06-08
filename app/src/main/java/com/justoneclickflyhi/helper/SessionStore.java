@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import com.justoneclickflyhi.manager.PrintStream;
+
 
 public class SessionStore {
 
@@ -28,6 +30,8 @@ public class SessionStore {
     private static String P_YEAR_SLEEP= "p_year_sleep";
 
     private static String P_PING_INTERVAL= "p_ping_interval";
+
+    private static String P_NOTIFY_RESPONSE = "p_notify_response";
 
     ////-----------Save received Mesage--------////////
     public static boolean saveReceivedMessage(String receivedMessage,Context context) {
@@ -132,6 +136,19 @@ public class SessionStore {
         return savedSession.getString(P_YEAR_AWAKE, null);
     }////-----------Save received Mesage Type--------////////
 
+    ////-----------Save received Mesage Type--------////////
+    public static boolean saveNotificationResponse(String receivedMessage,Context context) {
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, 0).edit();
+        editor.putString(P_NOTIFY_RESPONSE, receivedMessage);
+        return editor.commit();
+    }
+    public static String getNotificationResponse(Context context) {
+        SharedPreferences savedSession = context.getSharedPreferences(
+                PREF_NAME, 0);
+        return savedSession.getString(P_NOTIFY_RESPONSE, null);
+    }////-----------Save received Mesage Type--------////////
+
+
 
 
     ////-----------Save received Mesage Type--------////////
@@ -235,13 +252,14 @@ public class SessionStore {
 
     public static void setPref(Context context,String Message){
 
-        String msgBody;
-        msgBody = Message;
+        PrintStream.PrintLog("GET PREF");
+
+        String msgBody = Message;
+
         SessionStore.saveReceivedMessage(msgBody.toString(), context);
         SessionStore.saveReceivedMessageType(msgBody.substring(0, 2).toString(), context);
 
-        SessionStore.setAlarm("ACTIVATE_FUTURE_ALARAM", context);
-
+        //SessionStore.setAlarm("DEFALT",context);
         SessionStore.saveHourAwake(msgBody.substring(2, 4).toString(), context);
         SessionStore.saveMinuteAwake(msgBody.substring(4, 6).toString(), context);
         SessionStore.saveDayAwake(msgBody.substring(6, 8).toString(), context);
@@ -258,6 +276,12 @@ public class SessionStore {
 
         SessionStore.savePingMessage(msgBody.substring(27, msgBody.length()), context);
 
+    }
+
+
+    public static void getPrefConstants(Context context){
+        PrintStream.PrintLog("GET PREF CONSTANTS");
+
         Constants.MESSAGE = SessionStore.getReceivedMessage(context);
         Constants.MESSAGE_TYPE = SessionStore.getReceivedMessageType(context);
 
@@ -272,6 +296,7 @@ public class SessionStore {
 
         Constants.SLEEP_TIME_HOUR = SessionStore.getHourSleep(context);
         Constants.SLEEP_TIME_MIN = SessionStore.getMinuteSleep(context);
+
         Constants.SLEEP_DATE_DAY = SessionStore.getDaySleep(context);
         Constants.SLEEP_DATE_MONTH = SessionStore.getMonthSleep(context);
         Constants.SLEEP_DATE_YEAR = SessionStore.getYearSleep(context);
@@ -284,17 +309,9 @@ public class SessionStore {
         Constants.DAY= Integer.parseInt(SessionStore.getDayAwake(context));
         Constants.MONTH=Integer.parseInt(SessionStore.getMonthAwake(context));
         Constants.YEAR=Integer.parseInt(SessionStore.getYearAwake(context));
+
         Constants.PING_REPEAT_INT = Integer.parseInt(SessionStore.getPingInterval(context));
-
-
-        //if(s.equalsIgnoreCase("SMS_ERROR")){
-
-           // Toast.makeText(context, "SMS_ERROR", Toast.LENGTH_LONG).show();
-        //}
-
-        //AlarmSettings.setFirstAlarm(context);
+        }
     }
-
-}
 
 

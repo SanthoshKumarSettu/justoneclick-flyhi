@@ -9,4 +9,6 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_home">Just One Click</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_error_manager">ErrorManagerActivity</string>
+    <string name="title_activity_notification">NotificationActivity</string>
 </resources>

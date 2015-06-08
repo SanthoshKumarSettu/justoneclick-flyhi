@@ -1,5 +1,7 @@
 package com.justoneclickflyhi.helper;
 
+import android.content.Context;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -8,18 +10,22 @@ import java.util.Date;
 public class Application {
 	//String Status="";
 	static String REMINDER;
-	public String check()
+	SessionStore sessionStore;
+	public String check(Context context)
     {
+
+
 		try{
 
 			//get current date time with Date()
+			sessionStore.getPrefConstants(context);
 			Date date = new Date();
 			date.getTime();
 
-
 			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 			DateFormat timeFormat = new SimpleDateFormat("HH:mm");
-			String DD =Constants.AWAKE_DATE_DAY;
+
+			String DD  = Constants.AWAKE_DATE_DAY;
 			String MM = Constants.AWAKE_DATE_MONTH;
 			String YY = Constants.AWAKE_DATE_YEAR;
 
@@ -60,9 +66,6 @@ public class Application {
 			Date receivedDateSLEEP = dateFormat.parse(RSD);
 			/***RECEIVED SLEEP TIME*/
 			Date receivedTIMESLEEP = timeFormat.parse(RST);
-
-
-
 
 			/*** CURRENT DATE */
 			String ParseCurrentDate = dateFormat.format(date.getTime());
@@ -165,13 +168,13 @@ public class Application {
 
 
 
-			return Constants.REMINDER = "SMS_ERROR";
+			return REMINDER="SMS_ERROR";
 
 
 		}
 
     	
-		return Constants.REMINDER = REMINDER;
+		return REMINDER;
      }
 
 
