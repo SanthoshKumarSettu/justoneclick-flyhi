@@ -11,4 +11,5 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_error_manager">ErrorManagerActivity</string>
     <string name="title_activity_notification">NotificationActivity</string>
+    <string name="title_activity_message">MessageActivity</string>
 </resources>

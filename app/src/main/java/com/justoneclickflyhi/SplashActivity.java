@@ -69,7 +69,7 @@ public class SplashActivity extends Activity {
                             PrintStream.PrintLog("Session is "+SessionStore.getAlarm(context).toString());
                             PrintStream.PrintLog("INTO ELSE");
                             finish();
-                            Intent goHome = new Intent(SplashActivity.this, HomeActivity.class);
+                            Intent goHome = new Intent(SplashActivity.this, MessageActivity.class);
                             goHome.putExtra("STRING_I_NEED", newString);
                             startActivity(goHome);
 

@@ -74,6 +74,9 @@ public class SmsReceiver extends BroadcastReceiver {
                                             sessionStore.setAlarm("ACTIVATED", context);
                                             alarmSettings.setRepeatingAlarm(context,
                                                     PendingIntent.FLAG_UPDATE_CURRENT, "ACTIVITYALERT");
+
+
+
                                         }
                                     catch (Exception e)
                                         {
