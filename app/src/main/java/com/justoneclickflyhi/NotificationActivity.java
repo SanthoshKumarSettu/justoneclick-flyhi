@@ -111,7 +111,7 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
                 }
                 else
                 {   PrintStream.PrintLog("Tower details Sending GPS OFF");
-                    sms.sendTowerMessage(context, towerTracker.getTower().toString() + "NROK");
+                    sms.sendTowerMessage(context, towerTracker.getTower().toString() + "NRNO");
 
                 }
 
