@@ -58,11 +58,9 @@ public class GPSTracker extends Service implements LocationListener {
                     .isProviderEnabled(LocationManager.GPS_PROVIDER);
 
             if (!isGPSEnabled) {
-                Toast.makeText(mContext, "isGPSEnabled F ", Toast.LENGTH_LONG).show();
+
                 // no network provider is enabled
             } else {
-
-                Toast.makeText(mContext, "canGetLocation | isNetworkEnabled", Toast.LENGTH_LONG).show();
                 this.canGetLocation = true;
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {

@@ -14,10 +14,6 @@ public class ToastManager {
 	public static void showToast(Context context, String toastMessage){
 		
 		Toast.makeText(context, toastMessage, Toast.LENGTH_LONG).show();
-		
-		
-		
-		
 	}
 
 }

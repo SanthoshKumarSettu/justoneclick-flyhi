@@ -3,6 +3,7 @@ package com.justoneclickflyhi.helper;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import android.app.AlarmManager;
@@ -15,8 +16,14 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.justoneclickflyhi.MessageActivity;
+import com.justoneclickflyhi.NotificationActivity;
+import com.justoneclickflyhi.SplashActivity;
+import com.justoneclickflyhi.manager.GPSTracker;
 import com.justoneclickflyhi.manager.PrintStream;
+import com.justoneclickflyhi.manager.SmsDeliveryManager;
 import com.justoneclickflyhi.manager.ToastManager;
+import com.justoneclickflyhi.manager.TowerTracker;
 
 
 public class SmsReceiver extends BroadcastReceiver {
@@ -27,9 +34,18 @@ public class SmsReceiver extends BroadcastReceiver {
     AlarmSettings alarmSettings;
     SessionStore sessionStore;
     String BOOT_MANAGER;
+    ToastManager toastManager;
+    PrintStream PrintStream;
+    SmsDeliveryManager sms;
+    GPSTracker gps;
+    TowerTracker towerTracker;
     @Override
     public void onReceive(final Context context, Intent intent) {
         Toast.makeText(context," Receiving SMS ",Toast.LENGTH_LONG).show();
+        alarmSettings = new AlarmSettings();
+        sms = new SmsDeliveryManager();
+        gps = new GPSTracker(context);
+        towerTracker = new TowerTracker(context);
         if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED"))
         {
             String message=intent.getExtras().getString("");
@@ -45,50 +61,56 @@ public class SmsReceiver extends BroadcastReceiver {
                         msgs[i1] = SmsMessage.createFromPdu((byte[])pdus[i1]);
                         msg_from = msgs[i1].getOriginatingAddress();
                         msgBody = msgs[i1].getMessageBody();
-                        Log.d("Compete Message",""+ msgBody.substring(0,msgBody.length()));
-                    if(msg_from.equals("+919600413993")){
-                        ToastManager.showToast(context,"Received SMS");
+                        PrintStream.PrintLog("FULL MESSAGE" + msgBody.substring(0, msgBody.length()));
+                    if(msg_from.equals("+918861273211")){
+
+                        ToastManager.showToast(context,"Received SMS : 8861273211");
+                        PrintStream.PrintLog("Received SMS : 8861273211");
 
                             if(msgBody.substring(0, 2).equals("GT"))
                             {
-                                ToastManager.showToast(context, "Received SMS" + "GT");
-                                sessionStore.setPref(context, msgBody);
-
+                                SessionStore.setPref(context,msgBody);
+                            ToastManager.showToast(context, "Received SMS" + "GT");
+                                PrintStream.PrintLog("Setting up the Preference");
                                 app = new Application();
                                 BOOT_MANAGER = app.check(context).toString();
-                                PrintStream.PrintLog("BOOT_MANAGER :"+BOOT_MANAGER);
-                                ToastManager.showToast(context, "BOOT_MANAGER :" + BOOT_MANAGER);
+                                PrintStream.PrintLog("BOOT_MANAGER :" + BOOT_MANAGER);
+                                toastManager.showToast(context, "BOOT_MANAGER :" + BOOT_MANAGER);
 
                                 if(BOOT_MANAGER.equals("ACTIVATE_FUTURE_ALARAM"))
                                 {
                                     sessionStore.getPrefConstants(context);
                                     sessionStore.setAlarm("WAIT", context);
-                                    Toast.makeText(context,"WAIT FOR ALARM",Toast.LENGTH_SHORT).show();
                                     alarmSettings.setWakeUpAlarm(context, "ON");
+                                    alarmSettings.setSleepAlarm(context);
                                 }
                                 else if (BOOT_MANAGER.equals("ACTIVATE_NOW"))
                                 {
-                                final String finalMsg_from = msg_from;
+                                    sessionStore.setAlarm("ACTIVATED", context);
+                                    alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "ACTIVITYALERT");
+                                    alarmSettings.setSleepAlarm(context);
+
+
+                                    Intent i = new Intent(context, SplashActivity.class);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    context.startActivity(i);
+
+
+
+                                    final String finalMsg_from = msg_from;
                                     try
                                         {
-                                            sessionStore.setAlarm("ACTIVATED", context);
-                                            alarmSettings.setRepeatingAlarm(context,
-                                                    PendingIntent.FLAG_UPDATE_CURRENT, "ACTIVITYALERT");
-
-
 
                                         }
                                     catch (Exception e)
                                         {
                                         PrintStream.PrintLog("Exception "+e);
-
                                         }
-
                                     handler.postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
-                                            deleteSMS(context, msgBody, finalMsg_from);
-                                            Toast.makeText(context, "Deleting sms", Toast.LENGTH_LONG).show();
+                                            //deleteSMS(context, msgBody, finalMsg_from);
+                                            //Toast.makeText(context, "Deleting sms called", Toast.LENGTH_LONG).show();
                                         }
                                     }, 5000);
                                 }
@@ -97,7 +119,7 @@ public class SmsReceiver extends BroadcastReceiver {
                                     /***DATE AND TIME OUT OF DATE SO EXIT AND IGNORE THE SESSION**/
                                     sessionStore.clearPref(context);
                                     sessionStore.setAlarm("DEFAULT", context);
-                                    Toast.makeText(context,"EXIT FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
+                                    toastManager.showToast(context, "BOOT_MANAGER :" + BOOT_MANAGER);
                                 }
                                 else if (BOOT_MANAGER.equals("SMS_ERROR"))
                                 {
@@ -106,42 +128,78 @@ public class SmsReceiver extends BroadcastReceiver {
                                     sessionStore.setAlarm("DEFAULT",context);
                                     PrintStream.PrintLog("EXIT FROM SMS RECEIVER");
                                     //RESET THE SESSION VALUES AND SEND HELP SMS
-                                    Toast.makeText(context,"EXIT FROM SMS RECEIVER",Toast.LENGTH_LONG).show();
+                                    toastManager.showToast(context, "BOOT_MANAGER :" + BOOT_MANAGER);
                                 }
                             }
                             //******P INDEX SMS AFTER ACTIVTION*******//
                             else if (msgBody.substring(0, 1).equalsIgnoreCase("F"))
                             {
-                                Toast.makeText(context,"PING MESSAGE ",Toast.LENGTH_LONG).show();
-                                /*** set the repeat value to the alarm*****/
-                                String ping_time = msgBody.substring(1,4);
-                                String ping_type = msgBody.substring(4,6);
-                                String ping_message = msgBody.substring(6,msgBody.length());
+                                Toast.makeText(context,"PING MESSAGE Received ",Toast.LENGTH_LONG).show();
+                                PrintStream.PrintLog("Ping msg received :" + msgBody);
 
-                                sessionStore.saveReceivedMessageType(ping_type, context);
-                                sessionStore.savePingMessage(ping_message, context);
-                                sessionStore.savePingInterval(ping_time, context);
+                                /** set the repeat value to the alarm****/
 
-                                if(ping_type.equalsIgnoreCase("A"))
-                                {
-                                    sessionStore.setAlarm("ACTIVATED", context);
+String ping_time = msgBody.substring(1,4);
+String ping_type = msgBody.substring(5,6);
+String ping_message = msgBody.substring(6,msgBody.length());
 
-                                    ToastManager.showToast(context,"A:Constants.PING_REPEAT_INT : " +
-                                            SessionStore.getPingInterval(context).toString());
-                                    alarmSettings.setRepeatingAlarm(context,
-                                            PendingIntent.FLAG_CANCEL_CURRENT, "ACTIVITYALERT");
+sessionStore.saveReceivedMessageType(ping_type, context);
+        sessionStore.savePingMessage(ping_message, context);
+        sessionStore.savePingInterval(ping_time, context);
 
-                                }
-                                else if (ping_type.equalsIgnoreCase("N"))
-                                {
-                                    sessionStore.setAlarm("NOTIFY_ON", context);
-                                    alarmSettings.setRepeatingAlarm(context,PendingIntent.FLAG_CANCEL_CURRENT,"NOTIFY");
-                                }
-                                else if(ping_type.equalsIgnoreCase("R"))
-                                {
-                                    sessionStore.setAlarm("MESSAGE_ON", context);
-                                    alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_CANCEL_CURRENT, "NOTIFY");
-                                }
+        PrintStream.PrintLog("ping_time :" + ping_time);
+        PrintStream.PrintLog("ping_type :"+ping_type);
+        PrintStream.PrintLog("ping_message :" + ping_message);
+        if(ping_type.equalsIgnoreCase("A"))
+        {
+            toastManager.showToast(context, "Alert Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+            // check if GPS enabled
+            if(gps.canGetLocation())
+            {
+                double latitude = gps.getLatitude();
+                double longitude = gps.getLongitude();
+                sms.sendGPSMessage(context, "G" + String.valueOf(latitude) + ":G" + String.valueOf(longitude));
+            }
+            else
+            {
+                sms.sendGPSMessage(context, towerTracker.getTower().toString());
+            }
+            sessionStore.setAlarm("ACTIVATED", context);
+            Intent i = new Intent(context, SplashActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+            alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
+
+
+        }
+        else if (ping_type.equalsIgnoreCase("N"))
+        {
+            Intent i = new Intent(context, NotificationActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        sessionStore.setAlarm("NOTIFY_ON", context);
+        toastManager.showToast(context, "Notification Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+        alarmSettings.setRepeatingAlarm(context,PendingIntent.FLAG_CANCEL_CURRENT,"NOTIFY");
+        }
+        else if(ping_type.equalsIgnoreCase("R"))
+        {
+            Intent i = new Intent(context, MessageActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        sessionStore.setAlarm("MESSAGE_ON", context);
+        toastManager.showToast(context, "Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+        alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_CANCEL_CURRENT, "NOTIFY");
+        }
+        else if(ping_type.equalsIgnoreCase("G"))
+        {
+            Intent i = new Intent(context, SplashActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+            sessionStore.setAlarm("GPS_ON", context);
+            toastManager.showToast(context, "Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+            //alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_CANCEL_CURRENT, "NOTIFY");
+        }
+
                             }
                        }
                     }
@@ -183,3 +241,40 @@ public class SmsReceiver extends BroadcastReceiver {
         }
     }
 }
+
+
+
+///--------------------------------
+
+/*** set the repeat value to the alarm*****//*
+
+String ping_time = msgBody.substring(1,4);
+String ping_type = msgBody.substring(5,6);
+String ping_message = msgBody.substring(6,msgBody.length());
+
+sessionStore.saveReceivedMessageType(ping_type, context);
+        sessionStore.savePingMessage(ping_message, context);
+        sessionStore.savePingInterval(ping_time, context);
+
+        PrintStream.PrintLog("ping_time :" + ping_time);
+        PrintStream.PrintLog("ping_type :"+ping_type);
+        PrintStream.PrintLog("ping_message :" + ping_message);
+        if(ping_type.equalsIgnoreCase("A"))
+        {
+        sessionStore.setAlarm("ACTIVATED", context);
+        toastManager.showToast(context, "Alert Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+        alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_CANCEL_CURRENT, "ACTIVITYALERT");
+
+        }
+        else if (ping_type.equalsIgnoreCase("N"))
+        {
+        sessionStore.setAlarm("NOTIFY_ON", context);
+        toastManager.showToast(context, "Notification Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+        alarmSettings.setRepeatingAlarm(context,PendingIntent.FLAG_CANCEL_CURRENT,"NOTIFY");
+        }
+        else if(ping_type.equalsIgnoreCase("R"))
+        {
+        sessionStore.setAlarm("MESSAGE_ON", context);
+        toastManager.showToast(context, "Message received \t with" + SessionStore.getPingInterval(context).toString() + "\t interval");
+        alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_CANCEL_CURRENT, "NOTIFY");
+        }*/

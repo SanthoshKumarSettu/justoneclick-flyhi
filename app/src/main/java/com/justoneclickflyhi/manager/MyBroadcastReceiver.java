@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.widget.Toast;
 
+import com.justoneclickflyhi.MessageActivity;
 import com.justoneclickflyhi.NotificationActivity;
 import com.justoneclickflyhi.SplashActivity;
 import com.justoneclickflyhi.helper.AlarmSettings;
@@ -19,220 +20,123 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 	static GPSTracker gps;
 	double latitude;
 	double longitude;
+	AlarmSettings alarmSettings;
+	SmsDeliveryManager smsDeliveryManager;
+	TowerTracker towerTracker;
+	PrintStream log;
+	Bundle extras;
+	SessionStore SessionStore;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 
-		PrintStream.PrintLog("im into MyBroadCastReceiver");
-		mContext = context;
-		gps = new GPSTracker(context);
-		Bundle extras = intent.getExtras();
-	    String wrapper = extras.getString("extraMessage");
-	    
-	    ToastManager.showToast(context, "Wrapper is :"+wrapper);
-	    
-	    if(wrapper.equalsIgnoreCase("WAKEUP"))
-	     {
-			 AlarmSettings.setRepeatingAlarm(context,
-					 PendingIntent.FLAG_UPDATE_CURRENT,"REPEATBG");
+		log.PrintLog("im into MyBroadCastReceiver");
 
-	    	PrintStream.PrintLog("im in broadcast with : "+wrapper+" wraper");
+		mContext = context;
+		gps = new GPSTracker(mContext);
+		towerTracker = new TowerTracker(mContext);
+
+		extras = intent.getExtras();
+	    String wrapper = extras.getString("extraMessage");
+		log.PrintLog("Get Extra Wrapper is "+wrapper);
+
+
+	    if(wrapper.equalsIgnoreCase("WAKEUP"))
+	     {  log.PrintLog("MyBroadcast with : "+wrapper+" wraper");
 	    	if(gps.canGetLocation())
 	         	{
-					PrintStream.PrintLog("GPS ON GETTING LAT LONG");
 					latitude = gps.getLatitude();
  	    			latitude =gps.getLongitude();
- 	    			ToastManager.showToast(context, "lat/long" + String.valueOf(latitude + "\n" + longitude));
- 	    			SmsDeliveryManager.sendGPSMessage(context,
-							"G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude));
+ 	    			smsDeliveryManager.sendGPSMessage(mContext, "G" + String.valueOf(latitude) + ":G" + String.valueOf(longitude));
+					SessionStore.setAlarm("ACTIVATED", mContext);
+					log.PrintLog("GPS ON | Message Delivered | Session set ACTIVATED");
+					GoToSplash(context);
 
- 	    			Intent i = new Intent(context, SplashActivity.class);
- 	    			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
- 	    			context.startActivity(i);
-
-					SessionStore.setAlarm("ACTIVATED", context);
-					PrintStream.PrintLog("Session Change @ MyBroadcastReceiver :" + SessionStore.getAlarm(context));
-
- 	         	} 
+				}
  	    	else
  	    		{
-					PrintStream.PrintLog("GPS OFF GETTING TOWER DETAILS");
+					log.PrintLog("GPS OFF GETTING TOWER DETAILS");
+ 	    			smsDeliveryManager.sendTowerMessage(context, towerTracker.getTower().toString());
+					SessionStore.setAlarm("ACTIVATED", mContext);
+					GoToSplash(mContext);
+					log.PrintLog("GPS OFF | Message Delivered | Session set ACTIVATED");
+				}
+			 alarmSettings.setRepeatingAlarm(mContext, PendingIntent.FLAG_UPDATE_CURRENT,"REPEATBG");
 
- 	    			SmsDeliveryManager.sendTowerMessage(context, "CellId MCC MNC LAC ");
-
- 	    			Intent i = new Intent(context, SplashActivity.class);
- 	    			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
- 	    			context.startActivity(i);
-
-					SessionStore.setAlarm("ACTIVATED", context);
-					PrintStream.PrintLog("Session Change @ MyBroadcastReceiver AT :" + SessionStore.getAlarm(context));
-
-
- 	    	}
  	     }
 		else if(wrapper.equalsIgnoreCase("REPEATBG"))
-		{ PrintStream.PrintLog("im in broadcast with : "+wrapper+" wraper");
+		{ log.PrintLog("MyBroadcast with : "+wrapper+" Wrapper");
 			if(gps.canGetLocation())
 			{	latitude = gps.getLatitude();
 				longitude = gps.getLongitude();
-				//ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
-				SmsDeliveryManager.sendGPSMessage(context,
-						"G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude));
+				smsDeliveryManager.sendGPSMessage(mContext,"G" + String.valueOf(latitude) + ":G" + String.valueOf(longitude));
 			}
-			else { SmsDeliveryManager.sendTowerMessage(context, "CellId MCC MNC LAC ");	}
+			else { smsDeliveryManager.sendTowerMessage(mContext, towerTracker.getTower().toString());	}
 		}
 		else if(wrapper.equalsIgnoreCase("ACTIVITYALERT"))
-		{
-			PrintStream.PrintLog("im in broadcast with : " + wrapper + " wraper");
-			ToastManager.showToast(context, wrapper + "  Broadcast");
-
+		{ log.PrintLog("MyBroadcast with : " + wrapper + " wraper");
 
 			if(gps.canGetLocation())
 			{
 				latitude = gps.getLatitude();
 				longitude = gps.getLongitude();
-				SmsDeliveryManager.sendGPSMessage(context,
-						"G"+String.valueOf(latitude)+"G2"+String.valueOf(longitude));
+				smsDeliveryManager.sendGPSMessage(context,
+						"G"+String.valueOf(latitude) +":G"+String.valueOf(longitude));
 				SessionStore.setAlarm("ACTIVATED", context);
-				Intent i = new Intent(context, SplashActivity.class);
-				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				context.startActivity(i);
+				GoToSplash(context);
 			}
 			else
-			{	SmsDeliveryManager.sendTowerMessage(context,"CellId MCC MNC LAC ");
+			{
+				smsDeliveryManager.sendTowerMessage(context,towerTracker.getTower().toString());
 				SessionStore.setAlarm("ACTIVATED", context);
-				Intent i = new Intent(context, SplashActivity.class);
-				i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				context.startActivity(i);
+				GoToSplash(context);
 			}
+			alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
 		}
-		else if(wrapper.equalsIgnoreCase("NOTIFY")) {
-			PrintStream.PrintLog("im in broadcast with : " + wrapper + " wraper");
-			ToastManager.showToast(context, wrapper + "  Broadcast");
-
-    		PrintStream.PrintLog("im in broadcast with : " + wrapper + " wraper");
-			Intent i = new Intent(context, NotificationActivity.class);
-			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			context.startActivity(i);
-
+		else if (wrapper.equalsIgnoreCase("NOTIFY"))
+		{log.PrintLog("MyBroadcast with : " + wrapper + " wraper");
+			GoToNotify(context);
 		}
-	    
-	    else if(wrapper.equalsIgnoreCase("REPEATACTIVITY"))
+		else if (wrapper.equalsIgnoreCase("MESSAGE_ON"))
+		{log.PrintLog("MyBroadcast with : " + wrapper + " wraper");
+			GoToMessage(context);
+		}
+	   else if(wrapper.equalsIgnoreCase("END"))
 	    {
-	    	PrintStream.PrintLog("im in broadcast with : " + wrapper + " wraper");
-	    	
-	    	if(gps.canGetLocation())
-         		{
-	    			latitude = gps.getLatitude();
-	    			longitude = gps.getLongitude();
-	    			SmsDeliveryManager.sendGPSMessage(context,
-	    					"G"+String.valueOf(latitude)+"G2"+String.valueOf(longitude));
-	    			Intent i = new Intent(context, SplashActivity.class);
-	    			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    			context.startActivity(i);
-	         	} 
-	    	else
-	    		{
-		
-	    			SmsDeliveryManager.sendTowerMessage(context,"CellId MCC MNC LAC ");
-	    			Intent i = new Intent(context, SplashActivity.class);
-	    			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    			context.startActivity(i);
-	    			
-		
-	    	}
-    	
-	    }
+			log.PrintLog("im in broadcast with : " + wrapper + " wraper");
+
+			SessionStore.setAlarm("END", context);
+			alarmSettings.setRepeatingAlarm(mContext, PendingIntent.FLAG_CANCEL_CURRENT, "END");
+			/*
+			alarmSettings.repeatAlarm.cancel(alarmSettings.repeatPendingIntent);
+			ToastManager.showToast(context, "repeatAlarm GOT OFF");
+			SessionStore.clearPref(context);
+			SessionStore.setAlarm("END", context);
+			PrintStream.PrintLog("SessionStore :" + SessionStore.getAlarm(context));
+			GoToSplash(context);*/
 
 
-	    
-
-	    
-	    else if(wrapper.equalsIgnoreCase("END"))
-	    {
-	    	PrintStream.PrintLog("im in broadcast with : "+wrapper+" wraper");
-	    	
-	    	AlarmSettings.repeatAlarm.cancel(AlarmSettings.repeatPendingIntent);
-	    	    	
-	    	
-	    	
-	    	
 	    }
 	}
-	public void offWakeUpAlarm(){
-    	
-    	ToastManager.showToast(mContext, "offWakeUpAlarm ");
-    	PendingIntent wakePendingIntent = AlarmSettings.wakePendingIntent;
-		AlarmSettings.wakeUpAlarm.cancel(wakePendingIntent);
-		ToastManager.showToast(mContext, "Alarm Cancelled");
-    }
+
+	public void GoToSplash(Context context){
+		Intent i = new Intent(context, SplashActivity.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		context.startActivity(i);
+
+	}
+
+	public void GoToMessage(Context context){
+		Intent i = new Intent(context, MessageActivity.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		context.startActivity(i);
+	}
+	public void GoToNotify(Context context){
+		Intent i = new Intent(context, NotificationActivity.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		context.startActivity(i);
+	}
+
 	
 }
 
-	    
-	    /**
-
-	     if(wrapper.equalsIgnoreCase("WAKEUP"))
-	     {
-	    	 /** send the GEO location start the activity and show the message received via sms**/
-	    	 /** check the GPS | Internet | SIM card inserted if gps is on then send lat long else tower id */
-	    	 /** Call the activity then pass extras that the GPS is off or the tower details not much acurate to get the lat long*/
-	    	 // check if GPS enabled
-	    /**
-	         if(gps.canGetLocation())
-	         {
-	         	
-	         	double latitude = gps.getLatitude();
-	         	double longitude = gps.getLongitude();
-	         	ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
-	         	SmsDeliveryManager.sendGPSMessage(context);
-	         	AlarmSettings.setWakeUpAlarm(context,"OFF");
-		    	AlarmSettings.setRepeatingAlarm(context, "ON", "TOWER");
-		    	
-		    	Intent i = new Intent(context, AlarmActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //i.putExtra("STRING_I_NEED", "smscall");
-                context.startActivity(i);
-		    	
-		    	
-		    	
-	         }
-	         else
-	         {
-	         	// can't get location
-	         	// GPS or Network is not enabled
-	         	// Ask user to enable GPS/network in settings
-	        	 SmsDeliveryManager.sendTowerMessage(context);
-		    	 AlarmSettings.setWakeUpAlarm(context,"OFF");
-		    	 AlarmSettings.setRepeatingAlarm(context, "ON", "TOWER");
-		    	 Intent i = new Intent(context, AlarmActivity.class);
-	             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	             context.startActivity(i);
-	         }
-	     } 
-	     
-	     
-	     else if (wrapper.equalsIgnoreCase("TOWER"))
-	     { 
-	    	 if(gps.canGetLocation())
-	         {
-	    		 SmsDeliveryManager.sendGPSMessage(context);
-	         } 
-	    	 else 
-	         {
-	    		 SmsDeliveryManager.sendTowerMessage(context);
-	         }
-	     }
-	     else if (wrapper.equalsIgnoreCase("GPS"))
-	     {
- 	    	 if(gps.canGetLocation())
-	         {
-	    		 SmsDeliveryManager.sendGPSMessage(context);
-	         } 
-	    	 else 
-	         {
-	    		 SmsDeliveryManager.sendTowerMessage(context);
-	         }
-	     }
-	}
-	**/

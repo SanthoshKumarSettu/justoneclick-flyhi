@@ -248,19 +248,19 @@ public class SessionStore {
 
         editor.clear();
         editor.commit();
+        PrintStream.PrintLog("Setting prefeerence CLEAR");
     }
 
     public static void setPref(Context context,String Message){
 
-        PrintStream.PrintLog("GET PREF");
+        PrintStream.PrintLog("setting Pref");
 
         String msgBody = Message;
 
         SessionStore.saveReceivedMessage(msgBody.toString(), context);
         SessionStore.saveReceivedMessageType(msgBody.substring(0, 2).toString(), context);
 
-        //SessionStore.setAlarm("DEFALT",context);
-        SessionStore.saveHourAwake(msgBody.substring(2, 4).toString(), context);
+           SessionStore.saveHourAwake(msgBody.substring(2, 4).toString(), context);
         SessionStore.saveMinuteAwake(msgBody.substring(4, 6).toString(), context);
         SessionStore.saveDayAwake(msgBody.substring(6, 8).toString(), context);
         SessionStore.saveMonthAwake(msgBody.substring(8, 10).toString(), context);
@@ -283,6 +283,7 @@ public class SessionStore {
         PrintStream.PrintLog("GET PREF CONSTANTS");
 
         Constants.MESSAGE = SessionStore.getReceivedMessage(context);
+
         Constants.MESSAGE_TYPE = SessionStore.getReceivedMessageType(context);
 
         Constants.REMINDER = SessionStore.getAlarm(context);
@@ -296,16 +297,15 @@ public class SessionStore {
 
         Constants.SLEEP_TIME_HOUR = SessionStore.getHourSleep(context);
         Constants.SLEEP_TIME_MIN = SessionStore.getMinuteSleep(context);
-
         Constants.SLEEP_DATE_DAY = SessionStore.getDaySleep(context);
         Constants.SLEEP_DATE_MONTH = SessionStore.getMonthSleep(context);
         Constants.SLEEP_DATE_YEAR = SessionStore.getYearSleep(context);
+
         Constants.PING_MESSAGE = SessionStore.getPingMessage(context);
         Constants.PING_FREQUENCY_TIME =SessionStore.getPingInterval(context);
 
         Constants.HH = Integer.parseInt(SessionStore.getHourAwake(context));
         Constants.MIN = Integer.parseInt(SessionStore.getMinuteAwake(context));
-
         Constants.DAY= Integer.parseInt(SessionStore.getDayAwake(context));
         Constants.MONTH=Integer.parseInt(SessionStore.getMonthAwake(context));
         Constants.YEAR=Integer.parseInt(SessionStore.getYearAwake(context));

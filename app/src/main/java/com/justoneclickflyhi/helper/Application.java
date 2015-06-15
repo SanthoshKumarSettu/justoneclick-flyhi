@@ -2,22 +2,33 @@ package com.justoneclickflyhi.helper;
 
 import android.content.Context;
 
+import com.justoneclickflyhi.manager.PrintStream;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Application {
-	//String Status="";
+
 	static String REMINDER;
 	SessionStore sessionStore;
+
+	Date receivedDate;
+	Date receivedtime;
+
+	Date receivedDateSLEEP;
+	Date receivedTIMESLEEP;
+
+	Date currentDate;
+	PrintStream PrintStream;
+
 	public String check(Context context)
     {
-
-
+		com.justoneclickflyhi.manager.PrintStream.PrintLog("into APPLICATION CLASS");
 		try{
-
 			//get current date time with Date()
+
 			sessionStore.getPrefConstants(context);
 			Date date = new Date();
 			date.getTime();
@@ -58,124 +69,84 @@ public class Application {
 			//Date receivedTIMESLEEP = timeFormat.parse("23:30");
 
 			/***RECEIVED AWAKE DATE*/
-			Date receivedDate = dateFormat.parse(RAD);
+			receivedDate = dateFormat.parse(RAD);
 			/** RECEIVED AWAKE TIME  **/
-			Date receivedtime = timeFormat.parse(RAT);
+			receivedtime = timeFormat.parse(RAT);
 
 			/***RECEIVED SLEEP DATE*/
-			Date receivedDateSLEEP = dateFormat.parse(RSD);
+			receivedDateSLEEP = dateFormat.parse(RSD);
 			/***RECEIVED SLEEP TIME*/
-			Date receivedTIMESLEEP = timeFormat.parse(RST);
+			receivedTIMESLEEP = timeFormat.parse(RST);
 
 			/*** CURRENT DATE */
 			String ParseCurrentDate = dateFormat.format(date.getTime());
-			Date currentDate = dateFormat.parse(ParseCurrentDate);
+			currentDate = dateFormat.parse(ParseCurrentDate);
 
 			/*** CURRENT TIME */
 			String ParseReceivedTime = timeFormat.format(date.getTime());
 			Date currentTime = timeFormat.parse(ParseReceivedTime);
 
-			System.out.println("R TIME : "+timeFormat.format(receivedtime));
-			System.out.println("C TIME : "+timeFormat.format(date.getTime()));
+			PrintStream.PrintLog("R TIME : " + timeFormat.format(receivedtime));
+			PrintStream.PrintLog("C TIME : " + timeFormat.format(date.getTime()));
 
 
-			System.out.println("R date : "+dateFormat.format(receivedDate));
-			System.out.println("C date : "+dateFormat.format(date.getTime()));
+			PrintStream.PrintLog("R date : " + dateFormat.format(receivedDate));
+			PrintStream.PrintLog("C date : " + dateFormat.format(date.getTime()));
 
 			////AFTER DATE >>>>>>>>>> GREATER >>>>>>>>>>>
 			if(receivedDate.after(currentDate)){
-				System.out.println(0);
 				REMINDER="ACTIVATE_FUTURE_ALARAM";
-				System.out.println(REMINDER+"correct format Set Alaram with sms Timing and Date ");
-
 			}
 
 
 			//EQUALS DATE=========== EQUALS =================SET ALARAM
 			if(receivedDate.equals(currentDate))
-			{
-				System.out.println(8);
-				System.out.println("Its Today ");
+			{ PrintStream.PrintLog("Its Today ");
 				///////////////RECEIVED TIME
-				if(receivedtime.after(currentTime)){
-					System.out.println(9);
-					REMINDER="ACTIVATE_FUTURE_ALARAM";
-					System.out.println(REMINDER+"received time & current time is after set alaram today as received in sms");
+				if(receivedtime.after(currentTime)){PrintStream.PrintLog(REMINDER + "\t received time & current time is after set alaram today as received in sms");
+					 REMINDER="ACTIVATE_FUTURE_ALARAM";
 				}
 				///////////////RECEIVED TIME EXPIRED
 				if(receivedtime.before(currentTime)){
-					System.out.println(10);
-					REMINDER="ACTIVATE_NOW";
-					System.out.println(REMINDER+"received time is before to current time boot the application right now ");
+					 REMINDER="ACTIVATE_NOW"; PrintStream.PrintLog(REMINDER + "\t received time is before to current time boot the application right now ");
 				}
 				if(receivedtime.equals(currentTime)){
-					System.out.println(11);
-					REMINDER="ACTIVATE_NOW";
-					System.out.println(REMINDER+"recived time is equal to current time boot app now ");
+					 REMINDER="ACTIVATE_NOW"; PrintStream.PrintLog(REMINDER + "\t recived time is equal to current time boot app now ");
 				}
 			}
-
-
-
 			//BEFORE DATE<<<<<<<<< LESSER <<<<<<<<<<<<
-			if(receivedDate.before(currentDate)){
-				System.out.println(4);
-				System.out.println("Error in received date send SMS ");
+			if(receivedDate.before(currentDate)){ PrintStream.PrintLog("Error in received date send SMS");
 				if(receivedDateSLEEP.equals(currentDate))
-				{
-					System.out.println(5);
-					REMINDER="ACTIVATE_NOW";
-					System.out.println(REMINDER+"SMS Expires today ");
+				{  REMINDER="ACTIVATE_NOW"; PrintStream.PrintLog(REMINDER+"SMS Expires today ");
 				}
 				if(receivedDateSLEEP.before(currentDate))
 				{
-					System.out.println(6);
-					REMINDER="EXIT";
-					System.out.println(REMINDER+"received date sleep is before curreent date quit the app");
+					 REMINDER="EXIT"; PrintStream.PrintLog(REMINDER + "\t received date sleep is before curreent date quit the app");
 				}
 				if(receivedDateSLEEP.after(currentDate))
-				{
-
-					System.out.println(7);
-					//System.out.println("received date sleep is equal to today send the alam with frequency");
-					System.out.println("checking with received sleep date with current date");
+				{ PrintStream.PrintLog("checking with received sleep date with current date");
 					if(receivedTIMESLEEP.after(currentTime))
 					{
-
-						REMINDER="ACTIVATE_NOW";
-
-
-
-						System.out.println(REMINDER+"received time sleep is ater current time boot app");
+						 REMINDER="ACTIVATE_NOW"; PrintStream.PrintLog(REMINDER + "\t received time sleep is ater current time boot app");
 					}
 					if(receivedTIMESLEEP.before(currentTime))
 					{
-						REMINDER="EXIT";
-						//System.out.println("receivedDateSLEEP :"+receivedDateSLEEP);
-						//System.out.println("currentTime :"+currentTime);
-
-						//System.out.println(REMINDER+"received time sleep EXPIRED quit");
+						 REMINDER="EXIT"; PrintStream.PrintLog(REMINDER + "Exit app");
 					}
 					if(receivedTIMESLEEP.equals(currentTime))
 					{
-						REMINDER="ACTIVATE_NOW";
-						System.out.println(REMINDER+"Alert the user ");
+						 REMINDER="ACTIVATE_NOW"; PrintStream.PrintLog(REMINDER + "\t Alert the user ");
 					}
 				}
 			}
-
-		} catch (Exception e){
-
-
-
-			return REMINDER="SMS_ERROR";
-
-
 		}
-
-    	
+		catch (Exception e){
+			return REMINDER="SMS_ERROR";
+		}
 		return REMINDER;
      }
+
+
 
 
 

@@ -16,6 +16,7 @@ import com.justoneclickflyhi.helper.SessionStore;
 import com.justoneclickflyhi.manager.GPSTracker;
 import com.justoneclickflyhi.manager.PrintStream;
 import com.justoneclickflyhi.manager.SmsDeliveryManager;
+import com.justoneclickflyhi.manager.TowerTracker;
 
 
 public class MessageActivity extends ActionBarActivity implements View.OnClickListener {
@@ -23,11 +24,13 @@ public class MessageActivity extends ActionBarActivity implements View.OnClickLi
     TextView tvMessage;
     Context context;
     static GPSTracker gps;
+    static TowerTracker towerTracker;
     double latitude;
     double longitude;
     SmsDeliveryManager sms;
-    SessionStore ss;
+    SessionStore SessionStore;
     AlarmSettings alarmSettings;
+    PrintStream PrintStream;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,26 +41,20 @@ public class MessageActivity extends ActionBarActivity implements View.OnClickLi
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-
-
-
-        PrintStream.PrintLog("Calling setlisteners()");
         setlisteners();
         gps = new GPSTracker(context);
+        towerTracker = new TowerTracker(context);
         sms = new SmsDeliveryManager();
-        ss = new SessionStore();
+        SessionStore = new SessionStore();
 
     }
     public void setlisteners() {
-        PrintStream.PrintLog("INTO setlisteners()");
-
         YES = (Button)findViewById(R.id.button_YES);
         YES.setOnClickListener(this);
         NO = (Button)findViewById(R.id.button_NO);
         NO.setOnClickListener(this);
         tvMessage = (TextView) findViewById(R.id.textView_MESSAGE);
-        // tvMessage.setText(SessionStore.getReceivedMessage(context).toString());
-        tvMessage.setText("SessionStore.getReceivedMessage(context).toString() \n"+SessionStore.getAlarm(context).toString());
+        tvMessage.setText("Session "+SessionStore.getAlarm(context).toString()+"\n Message : ");
     }
 
     @Override
@@ -97,56 +94,50 @@ public class MessageActivity extends ActionBarActivity implements View.OnClickLi
                     longitude = gps.getLongitude();
                     //ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
                     sms.sendGPSMessage(context,
-                            "G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude)+":R01");
+                            "G" + String.valueOf(latitude) + ":G" + String.valueOf(longitude)+":R01");
                 }
                 else { PrintStream.PrintLog("Tower details Sending GPS OFF");
-                    sms.sendTowerMessage(context, "CellId MCC MNC LAC " + ":R01");	}
+                    //String t = towerTracker.getTower().toString();
+                    //PrintStream.PrintLog(t.toString());
+                    sms.sendTowerMessage(context, towerTracker.getTower().toString() + ":R01");
+                }
 
                 PrintStream.PrintLog("setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
-                ss.setAlarm("ACTIVATED", context);
+                SessionStore.setAlarm("ACTIVATED", context);
 
-                if(AlarmSettings.repeatPendingIntent==null){
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NULL");
-
-                }
-                else
-                {
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NOT NULL");
-                    alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
-                }
+                PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NOT NULL");
+                alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
 
 
-
+                finish();
 
                 break;
+
             case R.id.button_NO:
+
                 PrintStream.PrintLog("Pressed NO \n setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
 
-
-
                 if(gps.canGetLocation())
-                { PrintStream.PrintLog("GPS is enabled sending lat long");	latitude = gps.getLatitude();
+                { PrintStream.PrintLog("GPS is enabled sending lat long");
+                    latitude = gps.getLatitude();
                     longitude = gps.getLongitude();
                     //ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
-                    sms.sendGPSMessage(context,
-                            "G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude)+":R02");
-                }
-                else { PrintStream.PrintLog("Tower details Sending GPS OFF"); sms.sendTowerMessage(context, "CellId MCC MNC LAC "+"R02");	}
-
-                PrintStream.PrintLog("setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
-                ss.setAlarm("ACTIVATED", context);
-
-                if(AlarmSettings.repeatPendingIntent==null){
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NULL");
+                    sms.sendGPSMessage(context,"G" + String.valueOf(latitude) + ":G" + String.valueOf(longitude)+":R02");
                 }
                 else
                 {
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NOT NULL");
-                    alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
+                    PrintStream.PrintLog("Tower details Sending GPS OFF");
+                    sms.sendTowerMessage(context, towerTracker.getTower().toString()+"R02");
                 }
 
+                    PrintStream.PrintLog("setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
+                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NOT NULL");
+
+                    alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
+                    SessionStore.setAlarm("ACTIVATED", context);
+
+                finish();
                 break;
         }
-
     }
 }

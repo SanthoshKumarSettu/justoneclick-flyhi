@@ -4,22 +4,23 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.provider.Settings;
 
 import com.justoneclickflyhi.R;
 import com.justoneclickflyhi.helper.AlarmSettings;
 import com.justoneclickflyhi.helper.SessionStore;
 
 
-/**
- * Created by user on 19-05-2015.
- */
 public class AlertDialogManager {
 
     static GPSTracker gps;
+    Context mContext;
 
 
     public void showAlertDialog(Context context, String title, String message,
                                 Boolean status) {
+        mContext=context;
         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
 
         // Setting Dialog Title
@@ -35,6 +36,12 @@ public class AlertDialogManager {
         // Setting OK Button
         alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+
+                /*Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+
+                mContext.startActivity(intent);*/
+              /* mContext.startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), 1);*/
+
             }
         });
 
@@ -69,6 +76,5 @@ public class AlertDialogManager {
        alertDialog2.show();
 
    }
-
 
 }

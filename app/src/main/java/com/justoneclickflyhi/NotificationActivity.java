@@ -19,6 +19,7 @@ import com.justoneclickflyhi.manager.GPSTracker;
 import com.justoneclickflyhi.manager.PrintStream;
 import com.justoneclickflyhi.manager.SmsDeliveryManager;
 import com.justoneclickflyhi.manager.ToastManager;
+import com.justoneclickflyhi.manager.TowerTracker;
 
 public class NotificationActivity extends ActionBarActivity implements View.OnClickListener {
 
@@ -28,9 +29,14 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
     static GPSTracker gps;
     double latitude;
     double longitude;
+
     SmsDeliveryManager sms;
     SessionStore ss;
     AlarmSettings alarmSettings;
+
+    TowerTracker towerTracker;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,12 +51,9 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
         PrintStream.PrintLog("Calling setlisteners()");
         setlisteners();
         gps = new GPSTracker(context);
+        towerTracker = new TowerTracker(context);
         sms = new SmsDeliveryManager();
         ss = new SessionStore();
-
-
-
-
     }
 
     public void setlisteners() {
@@ -61,8 +64,7 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
         NO = (Button)findViewById(R.id.button_NROK);
         NO.setOnClickListener(this);
         tvMessage = (TextView) findViewById(R.id.textView_MESSAGE);
-       // tvMessage.setText(SessionStore.getReceivedMessage(context).toString());
-        tvMessage.setText("SessionStore.getReceivedMessage(context).toString() \n"+SessionStore.getAlarm(context).toString());
+        tvMessage.setText(SessionStore.getReceivedMessage(context).toString());
     }
 
     @Override
@@ -95,7 +97,8 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
         {
             case R.id.button_NRNO:
 
-                PrintStream.PrintLog("Pressed NRNO");
+                PrintStream.PrintLog("Pressed NRNO"+"\t SESSION : "+SessionStore.getAlarm(context)+"\t");
+                //AlarmSettings.setRepeatingAlarm();
                 if(gps.canGetLocation())
                 {
                     PrintStream.PrintLog("GPS is enabled sending lat long");
@@ -104,37 +107,40 @@ public class NotificationActivity extends ActionBarActivity implements View.OnCl
                     //ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
                     sms.sendGPSMessage(context,
                             "G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude)+"NRNO");
+
                 }
-                else { PrintStream.PrintLog("Tower details Sending GPS OFF");
-                    sms.sendTowerMessage(context, "CellId MCC MNC LAC " + "NROK");	}
+                else
+                {   PrintStream.PrintLog("Tower details Sending GPS OFF");
+                    sms.sendTowerMessage(context, towerTracker.getTower().toString() + "NROK");
 
+                }
 
+                finish();
 
                 break;
             case R.id.button_NROK:
                 PrintStream.PrintLog("Pressed NROK \n setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
 
-
-
                 if(gps.canGetLocation())
+
                 { PrintStream.PrintLog("GPS is enabled sending lat long");	latitude = gps.getLatitude();
                     longitude = gps.getLongitude();
                     //ToastManager.showToast(context, String.valueOf(latitude+"\n"+longitude));
                     sms.sendGPSMessage(context,
-                            "G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude)+"NROK");
+                            "G" + String.valueOf(latitude) + "G2" + String.valueOf(longitude) + "NROK");
+
                 }
-                else { PrintStream.PrintLog("Tower details Sending GPS OFF"); sms.sendTowerMessage(context, "CellId MCC MNC LAC "+"NROK");	}
+                else { PrintStream.PrintLog("Tower details Sending GPS OFF");
+
+
+                    sms.sendTowerMessage(context, towerTracker.getTower().toString()+"NROK");	}
 
                 PrintStream.PrintLog("setting alaram session as ACTIVATED \n and updating current repeat alarrm as REPEATBG");
                 ss.setAlarm("ACTIVATED", context);
-                if(AlarmSettings.repeatPendingIntent==null){
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NULL");
-                }
-                else
-                {
-                    PrintStream.PrintLog("AlarmSettings.repeatPendingIntent is NOT NULL");
+
+
                     alarmSettings.setRepeatingAlarm(context, PendingIntent.FLAG_UPDATE_CURRENT, "REPEATBG");
-                }
+                finish();
                 break;
         }
 
